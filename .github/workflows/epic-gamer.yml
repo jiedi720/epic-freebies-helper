@@ -36,10 +36,15 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
+      # 系统依赖已装在容器里；仅在缺失时才联网更新，避免每次跑任务都刷新 apt 索引。
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb libxml2-dev libxslt-dev
+          if dpkg -s xvfb libxml2-dev libxslt-dev >/dev/null 2>&1; then
+            echo "System dependencies already present; skipping apt-get."
+          else
+            sudo apt-get update
+            sudo apt-get install -y xvfb libxml2-dev libxslt-dev
+          fi
 
       - name: Install dependencies
         run: uv sync
@@ -49,9 +54,11 @@ jobs:
           PYTHONPATH: app
         run: uv run python scripts/check_hcaptcha_contract.py
 
-      # 增加 GITHUB_TOKEN 以降低 Camoufox 下载时的 403 频率限制。
-      # 即使这里失败，运行时也可以回退到 Playwright Firefox。
+      # Camoufox 需要下载约 1.3GB 二进制，自托管 runner 上成本过高，默认关闭。
+      # 需要时在仓库 Settings -> Secrets and variables -> Actions -> Variables
+      # 新建 ENABLE_CAMOUFOX = true 即可启用；不启用则回退到 Playwright Firefox。
       - name: Install Camoufox
+        if: vars.ENABLE_CAMOUFOX == 'true'
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
