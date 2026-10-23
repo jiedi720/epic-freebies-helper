@@ -13,7 +13,7 @@ env:
 
 jobs:
   epic-gamer:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     # A single account run can take 15-20 minutes. Multi-account runs are
     # sequential, so scale the timeout with the number of accounts by setting
     # a repository variable JOB_TIMEOUT_MINUTES (Settings -> Secrets and
