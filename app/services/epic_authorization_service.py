@@ -612,6 +612,31 @@ class EpicAuthorization:
                 return
             raise
 
+    async def _read_hcaptcha_response(self) -> str:
+        """Return the hCaptcha response token currently held by the login page."""
+        try:
+            value = await self.page.evaluate(
+                "() => {"
+                "const el = document.querySelector("
+                "'textarea[name=\"h-captcha-response\"],"
+                " input[name=\"h-captcha-response\"],"
+                " textarea[name=\"g-recaptcha-response\"]');"
+                " return el ? (el.value || '') : '';"
+                "}"
+            )
+        except Exception:
+            return ""
+        return value or ""
+
+    async def _wait_for_hcaptcha_response(self, timeout_seconds: float = 12.0) -> str:
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
+            value = await self._read_hcaptcha_response()
+            if value:
+                return value
+            await asyncio.sleep(0.5)
+        return ""
+
     async def _get_login_status(
         self, timeout_ms: int = 30000, *, warn_timeout: bool = True
     ) -> str | None:
@@ -744,6 +769,17 @@ class EpicAuthorization:
                     )
                 except Exception:
                     pass
+
+                # Epic 只在页面真正拿到 hCaptcha 响应令牌时才会接受登录提交。
+                # checkcaptcha 返回空响应时本地仍可能判定“成功”，这里用真实令牌复核，
+                # 空令牌直接按失败处理，避免带着无效 token 提交被 Epic 拒绝。
+                if challenge_signal == ChallengeSignal.SUCCESS:
+                    if not await self._wait_for_hcaptcha_response():
+                        logger.warning(
+                            "hCaptcha reported success but the page holds no response token; "
+                            "re-solving"
+                        )
+                        challenge_signal = ChallengeSignal.FAILURE
 
                 try:
                     await self._await_login_outcome(point_url, agent, timeout_seconds=25)
