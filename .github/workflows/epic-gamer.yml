@@ -9,6 +9,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  UV_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
 
 jobs:
   epic-gamer:
@@ -30,6 +31,7 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
+          version: "0.13.5"
 
       - name: Set up Python
         run: uv python install 3.12
