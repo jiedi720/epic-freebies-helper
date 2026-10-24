@@ -73,6 +73,9 @@ jobs:
           EPIC_PASSWORD: ${{ secrets.EPIC_PASSWORD }}
           EPIC_ACCOUNTS: ${{ secrets.EPIC_ACCOUNTS }}
           EPIC_TOTP_SECRET: ${{ secrets.EPIC_TOTP_SECRET }}
+          # 已登录会话的 cookie（base64）。设置后自动跳过 Epic 登录，不再触发登录验证码。
+          # 生成方式见 tools/bootstrap_epic_cookies.py
+          EPIC_COOKIES: ${{ secrets.EPIC_COOKIES }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           WXPUSH_ENDPOINT: ${{ secrets.WXPUSH_ENDPOINT }}
@@ -91,7 +94,9 @@ jobs:
           IMAGE_CLASSIFIER_MODEL: ${{ vars.IMAGE_CLASSIFIER_MODEL || secrets.IMAGE_CLASSIFIER_MODEL }}
           SPATIAL_POINT_REASONER_MODEL: ${{ vars.SPATIAL_POINT_REASONER_MODEL || secrets.SPATIAL_POINT_REASONER_MODEL }}
           SPATIAL_PATH_REASONER_MODEL: ${{ vars.SPATIAL_PATH_REASONER_MODEL || secrets.SPATIAL_PATH_REASONER_MODEL }}
-          BROWSER_BACKEND: auto
+          # auto = Camoufox 优先；playwright = 只用 Playwright Firefox（不下载 1.3GB）。
+          # 设了 EPIC_COOKIES 后登录验证码不再出现，playwright 足够用。
+          BROWSER_BACKEND: ${{ vars.BROWSER_BACKEND || 'auto' }}
           BROWSER_PROXY: ${{ secrets.BROWSER_PROXY }}
           HEADLESS: virtual
           DISABLE_BEZIER_TRAJECTORY: false

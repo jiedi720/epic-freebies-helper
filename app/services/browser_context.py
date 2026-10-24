@@ -12,6 +12,7 @@ from playwright.async_api import BrowserContext, Route, ViewportSize, async_play
 from requests import HTTPError, RequestException
 
 from extensions.playwright_runtime import install_playwright_frame_guard
+from services.epic_session_cookies import apply_session_cookies
 from settings import RECORD_DIR, settings
 
 _VIEWPORT = ViewportSize(width=1920, height=1080)
@@ -186,6 +187,7 @@ async def open_browser_context(headless: bool | str) -> AsyncIterator[BrowserCon
             )
         else:
             await _install_hsw_identity_route(browser)
+            await apply_session_cookies(browser)
             logger.info(
                 "Browser backend active | backend=camoufox | headless_mode={} | proxy_enabled={}",
                 headless,
@@ -212,6 +214,7 @@ async def open_browser_context(headless: bool | str) -> AsyncIterator[BrowserCon
                 **_playwright_launch_options(headless, proxy, display=display)
             )
             await _install_hsw_identity_route(browser)
+            await apply_session_cookies(browser)
             logger.warning(
                 "Browser backend active | backend=playwright-firefox | "
                 "headless_mode={} | proxy_enabled={}",
