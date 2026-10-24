@@ -57,7 +57,7 @@ def _channel_candidates() -> list[str | None]:
 
 
 async def _launch(playwright, channel: str | None):
-    kwargs = {"headless": False, "args": ["--start-maximized"], "no_viewport": True}
+    kwargs = {"headless": False, "args": ["--start-maximized"]}
     if channel:
         kwargs["channel"] = channel
     return await playwright.chromium.launch(**kwargs)
@@ -96,7 +96,7 @@ async def main() -> int:
             )
             return 2
 
-        context = await browser.new_context(locale="en-US")
+        context = await browser.new_context(locale="en-US", no_viewport=True)
         login_page = await context.new_page()
         await login_page.goto(LOGIN_URL, wait_until="domcontentloaded")
 
